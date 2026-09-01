@@ -7,4 +7,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  gha_indie_worker_client:
+    git:
+      url: https://github.com/gha-indie-worker/gha-indie-worker-clients.git
+      path: clients/dart
+      ref: 8c7ea1ed846724330062068935793c71d0e0cff5
+  http: ^1.6.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
