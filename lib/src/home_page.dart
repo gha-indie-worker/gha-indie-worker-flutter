@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _refresh = StreamController<void>.broadcast(sync: true);
+    _refresh = StreamController<void>();
     _states = observeHealth(
       triggers: _refresh.stream,
       client: widget.client,
