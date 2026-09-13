@@ -1,6 +1,7 @@
-class ConnectionStatus {
-  const ConnectionStatus({required this.connected, required this.endpoint});
-  final bool connected;
-  final String endpoint;
-}
-
+export 'package:gha_indie_worker_client/gha_indie_worker_client.dart'
+    show
+        Health,
+        HealthAvailable,
+        HealthChecking,
+        HealthProbeState,
+        HealthUnavailable;
