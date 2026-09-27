@@ -38,8 +38,17 @@ jobs:
           "$RUNNER_TEMP/flutter/bin/flutter" --version
           "$RUNNER_TEMP/flutter/bin/dart" --version
       - name: Resolve packages
-        run: "$RUNNER_TEMP/flutter/bin/flutter" pub get
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/flutter/bin/flutter" pub get
       - name: Check formatting
-        run: "$RUNNER_TEMP/flutter/bin/dart" format --output=none --set-exit-if-changed lib
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/flutter/bin/dart" format --output=none --set-exit-if-changed lib
       - name: Analyze
-        run: "$RUNNER_TEMP/flutter/bin/flutter" analyze
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/flutter/bin/flutter" analyze
