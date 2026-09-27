@@ -170,10 +170,10 @@ class _HomePageState extends State<HomePage> {
                     onPressed: _busy
                         ? null
                         : () => _perform(
-                            status.tunnel?.running == true
-                                ? _daemon.stopTunnel
-                                : _daemon.startTunnel,
-                          ),
+                              status.tunnel?.running == true
+                                  ? _daemon.stopTunnel
+                                  : _daemon.startTunnel,
+                            ),
                     child: Text(
                       status.tunnel?.running == true
                           ? 'Stop tunnel'
