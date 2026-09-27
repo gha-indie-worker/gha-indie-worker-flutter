@@ -32,7 +32,9 @@ jobs:
           git -C "$RUNNER_TEMP/flutter" checkout --detach FETCH_HEAD
       - name: Resolve packages exactly as CI does
         shell: bash
-        run: "$RUNNER_TEMP/flutter/bin/flutter" pub get
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/flutter/bin/flutter" pub get
       - name: Format and commit
         shell: bash
         run: |
