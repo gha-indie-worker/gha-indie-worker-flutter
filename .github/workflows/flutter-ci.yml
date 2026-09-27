@@ -10,6 +10,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FLUTTER_REVISION: 6a19cca564
+
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -19,21 +22,24 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-      - name: Install official Flutter stable SDK
+      - name: Install pinned official Flutter SDK
         shell: bash
         run: |
           set -euo pipefail
-          git clone --depth 1 --branch stable https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          git init "$RUNNER_TEMP/flutter"
+          git -C "$RUNNER_TEMP/flutter" remote add origin https://github.com/flutter/flutter.git
+          git -C "$RUNNER_TEMP/flutter" fetch --depth 1 origin "$FLUTTER_REVISION"
+          git -C "$RUNNER_TEMP/flutter" checkout --detach FETCH_HEAD
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - name: Show toolchain versions
         shell: bash
         run: |
           set -euo pipefail
-          flutter --version
-          dart --version
+          "$RUNNER_TEMP/flutter/bin/flutter" --version
+          "$RUNNER_TEMP/flutter/bin/dart" --version
       - name: Resolve packages
-        run: flutter pub get
+        run: "$RUNNER_TEMP/flutter/bin/flutter" pub get
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed lib
+        run: "$RUNNER_TEMP/flutter/bin/dart" format --output=none --set-exit-if-changed lib
       - name: Analyze
-        run: flutter analyze
+        run: "$RUNNER_TEMP/flutter/bin/flutter" analyze
