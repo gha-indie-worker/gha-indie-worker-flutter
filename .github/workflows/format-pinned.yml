@@ -30,6 +30,9 @@ jobs:
           git -C "$RUNNER_TEMP/flutter" remote add origin https://github.com/flutter/flutter.git
           git -C "$RUNNER_TEMP/flutter" fetch --depth 1 origin "$FLUTTER_REVISION"
           git -C "$RUNNER_TEMP/flutter" checkout --detach FETCH_HEAD
+      - name: Resolve packages exactly as CI does
+        shell: bash
+        run: "$RUNNER_TEMP/flutter/bin/flutter" pub get
       - name: Format and commit
         shell: bash
         run: |
