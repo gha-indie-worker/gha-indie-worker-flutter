@@ -8,11 +8,13 @@ const String _defaultBaseUrl = 'http://127.0.0.1:18440';
 
 class DesktopDaemonClient {
   DesktopDaemonClient({String? baseUrl, String? tokenFile})
-      : baseUrl = baseUrl ?? Platform.environment['GIW_DESKTOP_URL'] ?? _defaultBaseUrl,
-        tokenFile = tokenFile ??
-            Platform.environment['GIW_DESKTOP_TOKEN_FILE'] ??
-            _defaultTokenFile(),
-        _http = HttpClient() {
+    : baseUrl =
+          baseUrl ?? Platform.environment['GIW_DESKTOP_URL'] ?? _defaultBaseUrl,
+      tokenFile =
+          tokenFile ??
+          Platform.environment['GIW_DESKTOP_TOKEN_FILE'] ??
+          _defaultTokenFile(),
+      _http = HttpClient() {
     _validateLoopbackUrl(this.baseUrl);
   }
 
@@ -20,7 +22,8 @@ class DesktopDaemonClient {
   final String tokenFile;
   final HttpClient _http;
 
-  bool get supported => Platform.isMacOS || Platform.isLinux || Platform.isWindows;
+  bool get supported =>
+      Platform.isMacOS || Platform.isLinux || Platform.isWindows;
 
   Future<DesktopDaemonStatus> status() async {
     final json = await _request('GET', '/v1/status');
@@ -93,7 +96,11 @@ class DesktopDaemonClient {
     } else if (method == 'POST') {
       request = await _http.postUrl(uri);
     } else {
-      throw ArgumentError.value(method, 'method', 'unsupported daemon HTTP method');
+      throw ArgumentError.value(
+        method,
+        'method',
+        'unsupported daemon HTTP method',
+      );
     }
 
     request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $token');
@@ -107,7 +114,9 @@ class DesktopDaemonClient {
     final text = await utf8.decoder.bind(response).join();
     final decoded = jsonDecode(text);
     if (decoded is! Map<String, dynamic>) {
-      throw StateError('GIW desktop daemon returned a non-object JSON response');
+      throw StateError(
+        'GIW desktop daemon returned a non-object JSON response',
+      );
     }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -134,7 +143,8 @@ class DesktopDaemonClient {
 }
 
 String _defaultTokenFile() {
-  final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+  final home =
+      Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
   if (home == null || home.isEmpty) {
     // Android/iOS are dart:io targets but are not local process supervisors. Keep
     // construction side-effect free there; _ensureSupported() fails before IO.
@@ -145,15 +155,24 @@ String _defaultTokenFile() {
 
 void _validateLoopbackUrl(String raw) {
   final uri = Uri.parse(raw);
-  final loopback = uri.host == '127.0.0.1' || uri.host == 'localhost' || uri.host == '::1';
+  final loopback =
+      uri.host == '127.0.0.1' || uri.host == 'localhost' || uri.host == '::1';
   if (uri.scheme != 'http' || !loopback || uri.userInfo.isNotEmpty) {
-    throw ArgumentError.value(raw, 'baseUrl', 'GIW desktop daemon URL must be credential-free loopback HTTP');
+    throw ArgumentError.value(
+      raw,
+      'baseUrl',
+      'GIW desktop daemon URL must be credential-free loopback HTTP',
+    );
   }
 }
 
 void _validateProcessName(String name) {
   if (name.trim().isEmpty || name.contains('/')) {
-    throw ArgumentError.value(name, 'name', 'process name must be a manifest service name without /');
+    throw ArgumentError.value(
+      name,
+      'name',
+      'process name must be a manifest service name without /',
+    );
   }
 }
 

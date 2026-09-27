@@ -122,7 +122,10 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             Row(
               children: <Widget>[
-                Text('Local desktop control plane', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'Local desktop control plane',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const Spacer(),
                 IconButton(
                   onPressed: _busy ? null : _refreshDesktop,
@@ -133,7 +136,10 @@ class _HomePageState extends State<HomePage> {
             ),
             if (_desktopError != null) ...<Widget>[
               const SizedBox(height: 8),
-              Text(_desktopError!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              Text(
+                _desktopError!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ],
             if (status == null) ...<Widget>[
               const SizedBox(height: 16),
@@ -143,7 +149,9 @@ class _HomePageState extends State<HomePage> {
               Text('Mode: ${status.mode} · daemon ${status.bind}'),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Keep IndieBuild alive during lock-screen / sleep'),
+                title: const Text(
+                  'Keep IndieBuild alive during lock-screen / sleep',
+                ),
                 value: status.keepAwake,
                 onChanged: _busy
                     ? null
@@ -162,11 +170,15 @@ class _HomePageState extends State<HomePage> {
                     onPressed: _busy
                         ? null
                         : () => _perform(
-                              status.tunnel?.running == true
-                                  ? _daemon.stopTunnel
-                                  : _daemon.startTunnel,
-                            ),
-                    child: Text(status.tunnel?.running == true ? 'Stop tunnel' : 'Start tunnel'),
+                            status.tunnel?.running == true
+                                ? _daemon.stopTunnel
+                                : _daemon.startTunnel,
+                          ),
+                    child: Text(
+                      status.tunnel?.running == true
+                          ? 'Stop tunnel'
+                          : 'Start tunnel',
+                    ),
                   ),
                 ],
               ),

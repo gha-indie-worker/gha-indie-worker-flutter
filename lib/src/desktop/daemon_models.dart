@@ -64,7 +64,8 @@ class DesktopDaemonStatus {
   final bool keepAwake;
 
   factory DesktopDaemonStatus.fromJson(Map<String, dynamic> json) {
-    final servicesJson = json['services'] as List<dynamic>? ?? const <dynamic>[];
+    final servicesJson =
+        json['services'] as List<dynamic>? ?? const <dynamic>[];
     final tunnelJson = json['tunnel'];
 
     return DesktopDaemonStatus(
@@ -73,7 +74,10 @@ class DesktopDaemonStatus {
       bind: json['bind'] as String,
       manifestVersion: json['manifest_version'] as int,
       services: servicesJson
-          .map((entry) => DesktopProcessStatus.fromJson(entry as Map<String, dynamic>))
+          .map(
+            (entry) =>
+                DesktopProcessStatus.fromJson(entry as Map<String, dynamic>),
+          )
           .toList(growable: false),
       tunnel: tunnelJson == null
           ? null
