@@ -136,7 +136,9 @@ class DesktopDaemonClient {
 String _defaultTokenFile() {
   final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
   if (home == null || home.isEmpty) {
-    throw StateError('HOME or USERPROFILE must be set to locate the GIW desktop token');
+    // Android/iOS are dart:io targets but are not local process supervisors. Keep
+    // construction side-effect free there; _ensureSupported() fails before IO.
+    return '.giw${Platform.pathSeparator}desktop${Platform.pathSeparator}token';
   }
   return '$home${Platform.pathSeparator}.giw${Platform.pathSeparator}desktop${Platform.pathSeparator}token';
 }
