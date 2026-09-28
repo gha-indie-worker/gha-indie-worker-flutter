@@ -46,9 +46,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$RUNNER_TEMP/flutter/bin/dart" format --output=none --set-exit-if-changed lib
+          "$RUNNER_TEMP/flutter/bin/dart" format --output=none --set-exit-if-changed lib test
       - name: Analyze
         shell: bash
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/flutter/bin/flutter" analyze
+      - name: Test
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/flutter/bin/flutter" test --no-pub
