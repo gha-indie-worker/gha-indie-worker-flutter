@@ -130,7 +130,7 @@ class DesktopDaemonClient {
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw HttpException(
-        'GIW desktop daemon request failed with \${response.statusCode}',
+        'GIW desktop daemon request failed with ${response.statusCode}',
         uri: uri,
       );
     }
@@ -171,9 +171,9 @@ String _defaultTokenFile() {
   if (home == null || home.isEmpty) {
     // Android/iOS are dart:io targets but are not local process supervisors. Keep
     // construction side-effect free there; _ensureSupported() fails before IO.
-    return '.giw\${Platform.pathSeparator}desktop\${Platform.pathSeparator}token';
+    return '.giw${Platform.pathSeparator}desktop${Platform.pathSeparator}token';
   }
-  return '$home\${Platform.pathSeparator}.giw\${Platform.pathSeparator}desktop\${Platform.pathSeparator}token';
+  return '$home${Platform.pathSeparator}.giw${Platform.pathSeparator}desktop${Platform.pathSeparator}token';
 }
 
 String _validatedLoopbackUrl(String raw) {
