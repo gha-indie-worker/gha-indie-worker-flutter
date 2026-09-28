@@ -4,19 +4,24 @@ import 'dart:io';
 import 'daemon_models.dart';
 
 const int _supportedProtocolVersion = 1;
+const int _maxResponseBytes = 1024 * 1024;
+const int _maxTokenFileBytes = 4096;
+const Duration _requestTimeout = Duration(seconds: 5);
 const String _defaultBaseUrl = 'http://127.0.0.1:18440';
 
 class DesktopDaemonClient {
   DesktopDaemonClient({String? baseUrl, String? tokenFile})
-      : baseUrl = baseUrl ??
-            Platform.environment['GIW_DESKTOP_URL'] ??
-            _defaultBaseUrl,
+      : baseUrl = _validatedLoopbackUrl(
+          baseUrl ??
+              Platform.environment['GIW_DESKTOP_URL'] ??
+              _defaultBaseUrl,
+        ),
         tokenFile = tokenFile ??
             Platform.environment['GIW_DESKTOP_TOKEN_FILE'] ??
             _defaultTokenFile(),
-        _http = HttpClient() {
-    _validateLoopbackUrl(this.baseUrl);
-  }
+        _http = HttpClient()
+          ..connectionTimeout = _requestTimeout
+          ..idleTimeout = _requestTimeout;
 
   final String baseUrl;
   final String tokenFile;
@@ -34,7 +39,6 @@ class DesktopDaemonClient {
 
   Future<void> reconcile() async {
     await _request('POST', '/v1/reconcile');
-    return;
   }
 
   Future<void> setKeepAwake(bool enabled) async {
@@ -43,35 +47,29 @@ class DesktopDaemonClient {
       '/v1/power/keep-awake',
       body: <String, dynamic>{'enabled': enabled},
     );
-    return;
   }
 
   Future<void> startTunnel() async {
     await _request('POST', '/v1/tunnel/start');
-    return;
   }
 
   Future<void> stopTunnel() async {
     await _request('POST', '/v1/tunnel/stop');
-    return;
   }
 
   Future<void> startProcess(String name) async {
     _validateProcessName(name);
     await _request('POST', '/v1/processes/$name/start');
-    return;
   }
 
   Future<void> stopProcess(String name) async {
     _validateProcessName(name);
     await _request('POST', '/v1/processes/$name/stop');
-    return;
   }
 
   Future<void> restartProcess(String name) async {
     _validateProcessName(name);
     await _request('POST', '/v1/processes/$name/restart');
-    return;
   }
 
   void close() {
@@ -84,17 +82,26 @@ class DesktopDaemonClient {
     Map<String, dynamic>? body,
   }) async {
     _ensureSupported();
-    final token = (await File(tokenFile).readAsString()).trim();
+
+    final tokenSource = File(tokenFile);
+    final tokenBytes = await tokenSource.length();
+    if (tokenBytes <= 0 || tokenBytes > _maxTokenFileBytes) {
+      throw StateError(
+        'GIW desktop daemon token file must contain 1-$_maxTokenFileBytes bytes',
+      );
+    }
+
+    final token = (await tokenSource.readAsString()).trim();
     if (token.length < 32 || token.contains(RegExp(r'\s'))) {
       throw StateError('GIW desktop daemon token at $tokenFile is malformed');
     }
 
-    final uri = Uri.parse('${baseUrl.replaceFirst(RegExp(r'/$'), '')}$path');
+    final uri = Uri.parse(baseUrl).resolve(path);
     final HttpClientRequest request;
     if (method == 'GET') {
-      request = await _http.getUrl(uri);
+      request = await _http.getUrl(uri).timeout(_requestTimeout);
     } else if (method == 'POST') {
-      request = await _http.postUrl(uri);
+      request = await _http.postUrl(uri).timeout(_requestTimeout);
     } else {
       throw ArgumentError.value(
         method,
@@ -110,19 +117,35 @@ class DesktopDaemonClient {
       request.write(jsonEncode(body));
     }
 
-    final response = await request.close();
-    final text = await utf8.decoder.bind(response).join();
-    final decoded = jsonDecode(text);
-    if (decoded is! Map<String, dynamic>) {
-      throw StateError(
-        'GIW desktop daemon returned a non-object JSON response',
-      );
+    final response = await request.close().timeout(_requestTimeout);
+    final responseBytes = <int>[];
+    await for (final chunk in response.timeout(_requestTimeout)) {
+      if (responseBytes.length + chunk.length > _maxResponseBytes) {
+        throw StateError(
+          'GIW desktop daemon response exceeded the $_maxResponseBytes-byte maximum response size',
+        );
+      }
+      responseBytes.addAll(chunk);
     }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw HttpException(
-        'GIW desktop daemon request failed with ${response.statusCode}: $decoded',
+        'GIW desktop daemon request failed with \${response.statusCode}',
         uri: uri,
+      );
+    }
+
+    final text = utf8.decode(responseBytes);
+    final dynamic decoded;
+    try {
+      decoded = jsonDecode(text);
+    } on FormatException {
+      throw StateError('GIW desktop daemon returned invalid JSON');
+    }
+
+    if (decoded is! Map<String, dynamic>) {
+      throw StateError(
+        'GIW desktop daemon returned a non-object JSON response',
       );
     }
 
@@ -148,38 +171,57 @@ String _defaultTokenFile() {
   if (home == null || home.isEmpty) {
     // Android/iOS are dart:io targets but are not local process supervisors. Keep
     // construction side-effect free there; _ensureSupported() fails before IO.
-    return '.giw${Platform.pathSeparator}desktop${Platform.pathSeparator}token';
+    return '.giw\${Platform.pathSeparator}desktop\${Platform.pathSeparator}token';
   }
-  return '$home${Platform.pathSeparator}.giw${Platform.pathSeparator}desktop${Platform.pathSeparator}token';
+  return '$home\${Platform.pathSeparator}.giw\${Platform.pathSeparator}desktop\${Platform.pathSeparator}token';
 }
 
-void _validateLoopbackUrl(String raw) {
+String _validatedLoopbackUrl(String raw) {
   final uri = Uri.parse(raw);
-  final loopback =
-      uri.host == '127.0.0.1' || uri.host == 'localhost' || uri.host == '::1';
-  if (uri.scheme != 'http' || !loopback || uri.userInfo.isNotEmpty) {
+  final authorityMatch = RegExp(
+    r'^(?:127\.0\.0\.1|\[::1\]):([0-9]{1,5})$',
+  ).firstMatch(uri.authority);
+  final port = authorityMatch == null
+      ? null
+      : int.tryParse(authorityMatch.group(1) ?? '');
+
+  final pathIsBaseOnly = uri.path.isEmpty || uri.path == '/';
+  final valid = uri.scheme == 'http' &&
+      authorityMatch != null &&
+      port != null &&
+      port >= 1 &&
+      port <= 65535 &&
+      uri.userInfo.isEmpty &&
+      pathIsBaseOnly &&
+      uri.query.isEmpty &&
+      uri.fragment.isEmpty;
+
+  if (!valid) {
     throw ArgumentError.value(
       raw,
       'baseUrl',
-      'GIW desktop daemon URL must be credential-free loopback HTTP',
+      'GIW desktop daemon URL must be credential-free numeric loopback HTTP with an explicit port and no path, query, or fragment',
     );
   }
+
+  return raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
 }
 
 void _validateProcessName(String name) {
-  if (name.trim().isEmpty || name.contains('/')) {
+  final valid = RegExp(r'^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$').hasMatch(name);
+  if (!valid || name == '.' || name == '..') {
     throw ArgumentError.value(
       name,
       'name',
-      'process name must be a manifest service name without /',
+      'process name must be a 1-128 character manifest service name using only letters, digits, dot, underscore, and hyphen',
     );
   }
 }
 
 void _ensureProtocol(int version) {
-  if (version > _supportedProtocolVersion) {
+  if (version != _supportedProtocolVersion) {
     throw StateError(
-      'GIW daemon protocol $version is newer than this Flutter client supports ($_supportedProtocolVersion)',
+      'GIW daemon protocol $version is unsupported; this Flutter client requires $_supportedProtocolVersion',
     );
   }
 }
