@@ -12,9 +12,7 @@ const String _defaultBaseUrl = 'http://127.0.0.1:18440';
 class DesktopDaemonClient {
   DesktopDaemonClient({String? baseUrl, String? tokenFile})
       : baseUrl = _validatedLoopbackUrl(
-          baseUrl ??
-              Platform.environment['GIW_DESKTOP_URL'] ??
-              _defaultBaseUrl,
+          baseUrl ?? Platform.environment['GIW_DESKTOP_URL'] ?? _defaultBaseUrl,
         ),
         tokenFile = tokenFile ??
             Platform.environment['GIW_DESKTOP_TOKEN_FILE'] ??
