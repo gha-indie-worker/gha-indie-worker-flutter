@@ -1,10 +1,2 @@
-import 'models.dart';
-
-class ApiClient {
-  const ApiClient({required this.baseUrl});
-  final String baseUrl;
-
-  ConnectionStatus snapshot() =>
-      ConnectionStatus(connected: false, endpoint: baseUrl);
-}
-
+export 'package:gha_indie_worker_client/gha_indie_worker_client.dart'
+    show Client, ClientConfig, ClientException, ClientErrorCode;
