@@ -69,7 +69,7 @@ void main() {
     addTearDown(() => tempDir.delete(recursive: true));
 
     final tokenFile = File(
-      '\${tempDir.path}\${Platform.pathSeparator}token',
+      '${tempDir.path}${Platform.pathSeparator}token',
     );
     await tokenFile.writeAsString(List<String>.filled(32, 'x').join());
 
@@ -87,7 +87,7 @@ void main() {
     });
 
     final client = DesktopDaemonClient(
-      baseUrl: 'http://127.0.0.1:\${server.port}',
+      baseUrl: 'http://127.0.0.1:${server.port}',
       tokenFile: tokenFile.path,
     );
     addTearDown(client.close);
@@ -109,7 +109,7 @@ void main() {
     addTearDown(() => tempDir.delete(recursive: true));
 
     final tokenFile = File(
-      '\${tempDir.path}\${Platform.pathSeparator}token',
+      '${tempDir.path}${Platform.pathSeparator}token',
     );
     await tokenFile.writeAsString(List<String>.filled(32, 'x').join());
 
@@ -126,7 +126,7 @@ void main() {
     });
 
     final client = DesktopDaemonClient(
-      baseUrl: 'http://127.0.0.1:\${server.port}',
+      baseUrl: 'http://127.0.0.1:${server.port}',
       tokenFile: tokenFile.path,
     );
     addTearDown(client.close);
