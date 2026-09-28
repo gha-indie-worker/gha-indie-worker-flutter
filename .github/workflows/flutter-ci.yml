@@ -48,7 +48,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$RUNNER_TEMP/flutter/bin/dart" format --output=none --set-exit-if-changed lib test
+          "$RUNNER_TEMP/flutter/bin/dart" format lib test
+          git diff --exit-code -- lib test
       - name: Analyze
         shell: bash
         run: |
