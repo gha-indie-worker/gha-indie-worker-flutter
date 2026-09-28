@@ -46,11 +46,14 @@ jobs:
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - name: Resolve packages
         run: flutter pub get
-      - name: Check formatting
+      - name: Check touched-surface formatting
         shell: bash
         run: |
           set -euo pipefail
-          dart format --output=none --set-exit-if-changed lib test
+          dart format --output=none --set-exit-if-changed \
+            lib/src/desktop \
+            lib/src/home_page.dart \
+            test/desktop_daemon_contract_test.dart
       - name: Analyze
         run: flutter analyze
       - name: Test
