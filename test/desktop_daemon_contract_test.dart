@@ -25,34 +25,37 @@ void main() {
     expect(status.scintilla['status'], 'ok');
   });
 
-  test('desktop client accepts literal loopback and rejects hostname aliases', () {
-    expect(
-      () => DesktopDaemonClient(
-        baseUrl: 'http://127.0.0.1:8770',
-        tokenFile: '/tmp/unused-token',
-      ),
-      returnsNormally,
-    );
-    expect(
-      () => DesktopDaemonClient(
-        baseUrl: 'http://[::1]:8770',
-        tokenFile: '/tmp/unused-token',
-      ),
-      returnsNormally,
-    );
-    expect(
-      () => DesktopDaemonClient(
-        baseUrl: 'http://localhost:8770',
-        tokenFile: '/tmp/unused-token',
-      ),
-      throwsArgumentError,
-    );
-    expect(
-      () => DesktopDaemonClient(
-        baseUrl: 'https://127.0.0.1:8770',
-        tokenFile: '/tmp/unused-token',
-      ),
-      throwsArgumentError,
-    );
-  });
+  test(
+    'desktop client accepts literal loopback and rejects hostname aliases',
+    () {
+      expect(
+        () => DesktopDaemonClient(
+          baseUrl: 'http://127.0.0.1:8770',
+          tokenFile: '/tmp/unused-token',
+        ),
+        returnsNormally,
+      );
+      expect(
+        () => DesktopDaemonClient(
+          baseUrl: 'http://[::1]:8770',
+          tokenFile: '/tmp/unused-token',
+        ),
+        returnsNormally,
+      );
+      expect(
+        () => DesktopDaemonClient(
+          baseUrl: 'http://localhost:8770',
+          tokenFile: '/tmp/unused-token',
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => DesktopDaemonClient(
+          baseUrl: 'https://127.0.0.1:8770',
+          tokenFile: '/tmp/unused-token',
+        ),
+        throwsArgumentError,
+      );
+    },
+  );
 }
