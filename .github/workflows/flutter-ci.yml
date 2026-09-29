@@ -50,7 +50,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          dart format --output=none --set-exit-if-changed \
+          dart format \
+            lib/src/desktop \
+            lib/src/home_page.dart \
+            test/desktop_daemon_contract_test.dart
+          git diff -- \
+            lib/src/desktop \
+            lib/src/home_page.dart \
+            test/desktop_daemon_contract_test.dart
+          git diff --exit-code -- \
             lib/src/desktop \
             lib/src/home_page.dart \
             test/desktop_daemon_contract_test.dart
