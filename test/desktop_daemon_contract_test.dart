@@ -67,9 +67,7 @@ void main() {
     }
 
     final directory = await Directory.systemTemp.createTemp('giw-token-test-');
-    final token = File(
-      '${directory.path}${Platform.pathSeparator}token',
-    );
+    final token = File('${directory.path}${Platform.pathSeparator}token');
     await token.writeAsString('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n');
     final chmod = await Process.run('chmod', <String>['0644', token.path]);
     expect(chmod.exitCode, 0);
@@ -94,5 +92,4 @@ void main() {
       ),
     );
   });
-
 }
