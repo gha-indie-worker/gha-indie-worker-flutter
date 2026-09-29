@@ -89,7 +89,13 @@ class DesktopDaemonClient {
       );
     }
     final source = File(tokenFile);
-    final length = await source.length();
+    final stat = await source.stat();
+    if ((Platform.isLinux || Platform.isMacOS) && (stat.mode & 0x3f) != 0) {
+      throw StateError(
+        'GIW desktop daemon token file must not be accessible by group or others',
+      );
+    }
+    final length = stat.size;
     if (length <= 0 || length > _maxTokenFileBytes) {
       throw StateError(
         'GIW desktop daemon token file must contain 1-$_maxTokenFileBytes bytes',
