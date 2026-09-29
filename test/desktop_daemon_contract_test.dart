@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gha_indie_worker_flutter/src/desktop/daemon_client.dart';
 import 'package:gha_indie_worker_flutter/src/desktop/daemon_models.dart';
@@ -58,4 +60,39 @@ void main() {
       );
     },
   );
+
+  test('desktop client rejects group/world-readable Unix token files', () async {
+    if (!(Platform.isLinux || Platform.isMacOS)) {
+      return;
+    }
+
+    final directory = await Directory.systemTemp.createTemp('giw-token-test-');
+    final token = File(
+      '${directory.path}${Platform.pathSeparator}token',
+    );
+    await token.writeAsString('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n');
+    final chmod = await Process.run('chmod', <String>['0644', token.path]);
+    expect(chmod.exitCode, 0);
+
+    final client = DesktopDaemonClient(
+      baseUrl: 'http://127.0.0.1:8770',
+      tokenFile: token.path,
+    );
+    addTearDown(() async {
+      client.close();
+      await directory.delete(recursive: true);
+    });
+
+    await expectLater(
+      client.status(),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          contains('group or others'),
+        ),
+      ),
+    );
+  });
+
 }
