@@ -61,7 +61,8 @@ void main() {
     },
   );
 
-  test('desktop client rejects group/world-readable Unix token files', () async {
+  test('desktop client rejects group/world-readable Unix token files',
+      () async {
     if (!(Platform.isLinux || Platform.isMacOS)) {
       return;
     }
